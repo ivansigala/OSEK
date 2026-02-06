@@ -12,24 +12,6 @@ This project demonstrates a lightweight OSEK implementation running on the ARM C
 
 ---
 
-## Task Execution Flow
-
-```mermaid
-graph TD
-    A["Task A<br/>(Priority 1)<br/>Auto-start"] -->|Activates| B["Task B<br/>(Priority 3)"]
-    A -->|Terminates Self| SCHED1["Scheduler"]
-    B -->|Chains To| C["Task C<br/>(Priority 5)"]
-    C -->|Terminates Self| SCHED2["Scheduler"]
-    SCHED2 -->|No Ready Tasks| IDLE["Return to Main"]
-    
-    style A fill:#dc2626,color:#fff
-    style B fill:#059669,color:#fff
-    style C fill:#0c4a6e,color:#fff
-    style SCHED1 fill:#d97706,color:#fff
-    style SCHED2 fill:#d97706,color:#fff
-    style IDLE fill:#4b5563,color:#fff
-```
-
 ### Task Details
 
 | Task | Priority | State | Function |
