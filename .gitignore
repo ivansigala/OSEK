@@ -1,0 +1,31 @@
+# Build directories
+debug/
+release/
+build/
+*.o
+*.a
+*.elf
+*.hex
+*.bin
+
+# IDE files
+.cproject
+.project
+.settings/
+.mcuxpressoide_project_cache/
+*.launch
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE caches
+.vscode/settings.json
+.vscode/launch.json
+.idea/
