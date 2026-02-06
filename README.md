@@ -22,12 +22,12 @@ graph TD
     C -->|Terminates Self| SCHED2["Scheduler"]
     SCHED2 -->|No Ready Tasks| IDLE["Return to Main"]
     
-    style A fill:#ff6b6b
-    style B fill:#51cf66
-    style C fill:#4dabf7
-    style SCHED1 fill:#ffd43b
-    style SCHED2 fill:#ffd43b
-    style IDLE fill:#e9ecef
+    style A fill:#dc2626,color:#fff
+    style B fill:#059669,color:#fff
+    style C fill:#0c4a6e,color:#fff
+    style SCHED1 fill:#d97706,color:#fff
+    style SCHED2 fill:#d97706,color:#fff
+    style IDLE fill:#4b5563,color:#fff
 ```
 
 ### Task Details
@@ -80,11 +80,11 @@ graph LR
     D -->|Load New<br/>Context| E["Execute Task"]
     E -->|Task yields| B
     
-    style A fill:#e7f5ff
-    style B fill:#ffd43b
-    style D fill:#f1f3f5
-    style E fill:#d3f9d8
-    style C fill:#e9ecef
+    style A fill:#3b82f6,color:#fff
+    style B fill:#d97706,color:#fff
+    style D fill:#6b7280,color:#fff
+    style E fill:#10b981,color:#fff
+    style C fill:#4b5563,color:#fff
 ```
 
 **Scheduling Rules:**
@@ -120,11 +120,11 @@ graph TB
     D -.->|ARM Assembly| C
     E -.->|ARM Assembly| C
     
-    style A fill:#e7f5ff
-    style B fill:#fff3bf
-    style C fill:#d3f9d8
-    style D fill:#f1f3f5
-    style E fill:#f1f3f5
+    style A fill:#3b82f6,color:#fff
+    style B fill:#f59e0b,color:#000
+    style C fill:#10b981,color:#fff
+    style D fill:#6b7280,color:#fff
+    style E fill:#6b7280,color:#fff
 ```
 
 ### Stack Frame Structure
@@ -193,15 +193,15 @@ graph TD
     TASKB -.-> GPIO
     TASKC -.-> GPIO
     
-    style APP fill:#e7f5ff
-    style TASKA fill:#ff6b6b
-    style TASKB fill:#51cf66
-    style TASKC fill:#4dabf7
-    style INIT fill:#ffd43b
-    style SCHED fill:#ffd43b
-    style GPIO fill:#f1f3f5
-    style POOL fill:#fff3bf
-    style QUEUE fill:#fff3bf
+    style APP fill:#3b82f6,color:#fff
+    style TASKA fill:#dc2626,color:#fff
+    style TASKB fill:#059669,color:#fff
+    style TASKC fill:#0c4a6e,color:#fff
+    style INIT fill:#d97706,color:#fff
+    style SCHED fill:#d97706,color:#fff
+    style GPIO fill:#6b7280,color:#fff
+    style POOL fill:#f59e0b,color:#000
+    style QUEUE fill:#f59e0b,color:#000
 ```
 
 ---
