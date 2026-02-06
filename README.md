@@ -4,11 +4,11 @@ A real-time operating system kernel (OSEK) implementation for the NXP FRDM-MCXn9
 
 ## Project Overview
 
-This project demonstrates a lightweight OSEK (AUTOSAR Operating System Embedded Kernel) implementation running on the ARM Cortex-M33 core. The system creates three tasks with different priorities that execute sequentially to control RGB LEDs on the development board.
+This project demonstrates a lightweight OSEK implementation running on the ARM Cortex-M33 core. The system creates three tasks with different priorities that execute sequentially to control RGB LEDs on the development board.
 
-**Hardware:** NXP FRDM-MCXn947 (ARM Cortex-M33)  
+**Hardware:** NXP FRDM-MCXN947 (ARM Cortex-M33)  
 **RTOS:** Custom OSEK Kernel with priority-based scheduling  
-**Build System:** CMake (MCUXpresso compatible)  
+**Build System:** CMake 
 
 ---
 
@@ -97,52 +97,58 @@ graph LR
 
 ## Context Switching Architecture
 
-The kernel uses **manual stack-based context switching** with per-task stacks:
+The kernel preserves the main() context at startup and uses **ARM BLX instruction** for task invocation, allowing tasks to return control to the scheduler:
 
 ```mermaid
 graph TB
-    subgraph "Task Structure"
-        A["Task Control Block<br/>- Priority<br/>- State<br/>- Stack Pointer<br/>- Function Pointer"]
+    subgraph "Startup Context"
+        A["OSEK_Init() saves:<br/>- Main Stack Pointer<br/>- Main Link Register"]
     end
     
-    subgraph "Stack Management"
-        B["Task Stack<br/>512 bytes each"]
-        C["Stack Frame<br/>R4-R11, LR"]
+    subgraph "Task Execution"
+        B["BLX r3 calls task<br/>(r3 = task function ptr)"]
+        C["Task code executes<br/>(using main stack)"]
     end
     
-    subgraph "Context Operations"
-        D["OSEK_ContextSave<br/>Push R4-R11, LR"]
-        E["OSEK_ContextRestore<br/>Pop R4-R11, PC"]
+    subgraph "Task Return"
+        D["Task calls<br/>TerminateTask()/<br/>ChainTask()"]
+        E["Control returns to<br/>OSEK_Scheduler()"]
+    end
+    
+    subgraph "Idle Handling"
+        F["No ready tasks?<br/>Restore main context"]
+        G["Return to main()"]
     end
     
     A --> B
     B --> C
-    D -.->|ARM Assembly| C
-    E -.->|ARM Assembly| C
+    C --> D
+    D --> E
+    E -->|More tasks ready| B
+    E -->|No tasks ready| F
+    F --> G
     
     style A fill:#3b82f6,color:#fff
-    style B fill:#f59e0b,color:#000
+    style B fill:#d97706,color:#fff
     style C fill:#10b981,color:#fff
-    style D fill:#6b7280,color:#fff
+    style D fill:#f59e0b,color:#000
     style E fill:#6b7280,color:#fff
+    style F fill:#dc2626,color:#fff
+    style G fill:#059669,color:#fff
 ```
 
-### Stack Frame Structure
+### Context Preservation Strategy
 
-Each task's stack frame stores the CPU context:
+Instead of per-task stacks, the kernel uses a **main context preservation** approach:
 
 ```c
-typedef struct {
-    uint32_t r4;    // Callee-saved register
-    uint32_t r5;    // Callee-saved register
-    uint32_t r6;    // Callee-saved register
-    uint32_t r7;    // Callee-saved register
-    uint32_t r8;    // Callee-saved register
-    uint32_t r9;    // Callee-saved register
-    uint32_t r10;   // Callee-saved register
-    uint32_t r11;   // Callee-saved register
-    uint32_t lr;    // Return address / Program Counter
-} OSEK_StackFrame_t;
+// Saved at startup in OSEK_Init()
+static uint32_t g_main_stack_pointer = 0;  // SP of main()
+static uint32_t g_main_link_register = 0;  // Return address to main()
+
+// Task invocation via BLX (Branch with Link and Exchange)
+// Automatically: LR = return address, jumps to task
+// Task return: BX LR returns to OSEK_Scheduler()
 ```
 
 ---
@@ -159,10 +165,8 @@ graph TD
     end
     
     subgraph "OSEK Kernel"
-        INIT["OSEK_Init()"]
-        SCHED["OSEK_Scheduler()"]
-        CTXSAVE["OSEK_ContextSave()"]
-        CTXREST["OSEK_ContextRestore()"]
+        INIT["OSEK_Init()<br/>Saves main context"]
+        SCHED["OSEK_Scheduler()<br/>Find & execute task"]
         ACTIVATE["OSEK_ActivateTask()"]
         TERMINATE["OSEK_TerminateTask()"]
         CHAIN["OSEK_ChainTask()"]
@@ -170,8 +174,8 @@ graph TD
     
     subgraph "Hardware & Data Structures"
         GPIO["GPIO Control"]
-        POOL["Task Pool<br/>Static Allocation"]
         QUEUE["Task Linked List"]
+        BLX["BLX Instruction<br/>Task invocation"]
     end
     
     APP --> INIT
@@ -181,14 +185,12 @@ graph TD
     TASKC --> TERMINATE
     
     INIT --> SCHED
-    SCHED --> CTXSAVE
-    SCHED --> CTXREST
+    SCHED --> BLX
     ACTIVATE --> SCHED
     TERMINATE --> SCHED
     CHAIN --> SCHED
     
     SCHED -.-> QUEUE
-    QUEUE -.-> POOL
     TASKA -.-> GPIO
     TASKB -.-> GPIO
     TASKC -.-> GPIO
@@ -200,8 +202,8 @@ graph TD
     style INIT fill:#d97706,color:#fff
     style SCHED fill:#d97706,color:#fff
     style GPIO fill:#6b7280,color:#fff
-    style POOL fill:#f59e0b,color:#000
     style QUEUE fill:#f59e0b,color:#000
+    style BLX fill:#10b981,color:#fff
 ```
 
 ---
@@ -307,30 +309,54 @@ cmake --build .
 
 ## Key Implementation Details
 
-### 1. Static Task Pool Allocation
-Instead of using `malloc()` for each task (which exhausts heap), tasks are allocated from a pre-allocated static pool:
+### 1. Main Context Preservation at Startup
+The kernel saves the main() execution context during initialization:
 
 ```c
-static OSEK_Task_t g_task_pool[MAX_TASKS];  // Compile-time allocation
-static uint32_t g_task_pool_idx = 0;        // Track allocation index
+void OSEK_Init(void) {
+    __asm volatile (
+        "mov r0, sp\n"
+        "ldr r1, =g_main_stack_pointer\n"
+        "str r0, [r1]\n"               // Save main's SP
+        "mov r0, lr\n"
+        "ldr r1, =g_main_link_register\n"
+        "str r0, [r1]\n"               // Save main's LR (return address)
+    );
+    OSEK_Scheduler();
+}
 ```
 
-### 2. Context Switching with Naked Assembly
-Callee-saved registers (R4-R11) and return address (LR) are manually saved/restored using ARM inline assembly:
+### 2. Task Invocation via BLX Instruction
+Tasks are called using the ARM **BLX** (Branch with Link and eXchange) instruction, which automatically saves the return address:
 
 ```c
-__attribute__((naked)) static void OSEK_ContextSave(void) {
+__asm volatile (
+    "ldr r3, =g_task_to_run_pf\n"      // Load task function pointer
+    "ldr r3, [r3]\n"
+    "blx r3\n"                         // Call task, LR = return address
+);
+// Control returns here when task returns
+```
+
+When the task calls `OSEK_TerminateTask()` or `OSEK_ChainTask()`, execution returns to the scheduler loop.
+
+### 3. Idle State Recovery
+When no tasks are ready, the kernel restores main() context to return cleanly:
+
+```c
+if (highest_priority_task_sp == NULL) {
     __asm volatile (
-        "push {r4-r11, lr}\n"
-        "ldr r0, =g_actual_task_sp\n"
+        "ldr r0, =g_main_stack_pointer\n"
         "ldr r0, [r0]\n"
-        "str sp, [r0, #20]\n"  // Save SP to task struct
-        "bx lr\n"
+        "mov sp, r0\n"                 // Restore main's SP
+        "ldr r0, =g_main_link_register\n"
+        "ldr r0, [r0]\n"
+        "bx r0\n"                      // Return to main()
     );
 }
 ```
 
-### 3. Priority-Based Scheduler
+### 4. Priority-Based Scheduler
 The scheduler scans the ready task list and executes the highest priority task:
 
 ```c
@@ -378,39 +404,20 @@ OSEK_Init();
 - **Non-preemptive scheduling:** Tasks cannot be interrupted (must yield)
 - **No time slicing:** No round-robin scheduling
 - **Limited to 10 tasks:** `MAX_TASKS` defined at compile-time
-- **Fixed stack size:** All tasks have 512-byte stacks
+- **Single shared stack:** All tasks share the main() stack (potential overflow risk with deep nesting)
+- **Dynamic allocation:** Uses `malloc()` for task creation (limited by heap size)
 
 ### Recommended Improvements
 - [ ] Add preemptive scheduling support (SysTick interrupt)
 - [ ] Implement time-slicing for fairness
 - [ ] Add semaphore/mutex support for task synchronization
-- [ ] Dynamic stack size configuration
+- [ ] Implement per-task stack allocation for isolation
 - [ ] Event/interrupt handling for external devices
 - [ ] Task priority inheritance mechanisms
 
 ---
 
 ## Repository Setup
-
-### .gitignore
-```gitignore
-# Build directories
-debug/
-release/
-build/
-
-# IDE files
-.cproject
-.project
-.settings/
-.mcuxpressoide_project_cache/
-
-# CMake artifacts
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-compile_commands.json
-```
 
 ### Initial Commit
 ```bash
@@ -425,9 +432,8 @@ git push -u origin main
 
 ## References
 
-- [OSEK documentation](http://eos.cs.ovgu.de/eos_old/lehre/WS0708/vl_pkes/folien/osek-man.pdf/)
 - [NXP MCXn947 Data Sheet](https://docs.nxp.com/bundle/UM12018/page/topics/related_documentation.html)
-- [ARM Cortex-M Programming Guide](https://developer.arm.com/documentation/100235/0003/the-cortex-m33-instruction-set/cortex-m33-instructions)
+- [ARM Cortex-M  Assembly Programming Guide](https://developer.arm.com/documentation/100235/0003/the-cortex-m33-instruction-set/cortex-m33-instructions)
 
 ---
 
