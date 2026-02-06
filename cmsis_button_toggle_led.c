@@ -47,7 +47,7 @@ static void BUTTON_EventCallback(uint32_t pin, uint32_t event)
 }
 
 /*!
- * @brief Task A - terminates itself
+ * @brief Task A - Turns on the red led, activates task B and terminates itself
  */
 static void task_a(void)
 {
@@ -60,7 +60,7 @@ static void task_a(void)
 }
 
 /*!
- * @brief Task B - chains to Task C
+ * @brief Task B - Turns on the green led and chains to Task C
  */
 static void task_b(void)
 {
@@ -73,7 +73,7 @@ static void task_b(void)
 }
 
 /*!
- * @brief Task C - terminates itself
+ * @brief Task C - Turns on the blue led and terminates itself
  */
 static void task_c(void)
 {

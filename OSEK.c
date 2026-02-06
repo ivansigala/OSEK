@@ -191,10 +191,10 @@ void OSEK_TerminateTask(void){
 }
 
 /*
- * @brief
+ * @brief Change the state of the current task to suspended and the new task to ready
  * @param task_name_sp pointer to the Task's struct
  * @return void
- * @note
+ * @note Calls the scheduler after changing the states
 */
 void OSEK_ChainTask(OSEK_Task_t *task_name_sp){
 
