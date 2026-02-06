@@ -441,6 +441,6 @@ SPDX-License-Identifier: BSD-3-Clause
 
 ## Author
 
-Diego - OSEK Kernel Implementation  
+Diego & Romulo - OSEK Kernel Implementation  
 **Created:** January 24, 2026  
 **Last Updated:** February 6, 2026
