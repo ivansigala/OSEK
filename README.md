@@ -425,10 +425,9 @@ git push -u origin main
 
 ## References
 
-- [AUTOSAR OSEK Specification](https://www.autosar.org/)
-- [NXP MCXn947 Data Sheet](https://www.nxp.com/)
-- [ARM Cortex-M Programming Guide](https://developer.arm.com/)
-- [MCUXpresso IDE Documentation](https://www.nxp.com/mcuxpresso)
+- [OSEK documentation](http://eos.cs.ovgu.de/eos_old/lehre/WS0708/vl_pkes/folien/osek-man.pdf/)
+- [NXP MCXn947 Data Sheet](https://docs.nxp.com/bundle/UM12018/page/topics/related_documentation.html)
+- [ARM Cortex-M Programming Guide](https://developer.arm.com/documentation/100235/0003/the-cortex-m33-instruction-set/cortex-m33-instructions)
 
 ---
 
