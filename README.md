@@ -360,11 +360,9 @@ OSEK_Init();
 
 ### Recommended Improvements
 - [ ] Add preemptive scheduling support (SysTick interrupt)
-- [ ] Implement time-slicing for fairness
 - [ ] Add semaphore/mutex support for task synchronization
-- [ ] Implement per-task stack allocation for isolation
+- [ ] Implement task stack allocation for isolation
 - [ ] Event/interrupt handling for external devices
-- [ ] Task priority inheritance mechanisms
 
 ---
 
