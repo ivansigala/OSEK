@@ -157,25 +157,8 @@ graph TD
     subgraph "Hardware & Data Structures"
         GPIO["GPIO Control"]
         QUEUE["Task Linked List"]
-        BLX["BLX Instruction<br/>Task invocation"]
+        BLX["Assembly calls"]
     end
-    
-    APP --> INIT
-    TASKA --> TERMINATE
-    TASKA --> ACTIVATE
-    TASKB --> CHAIN
-    TASKC --> TERMINATE
-    
-    INIT --> SCHED
-    SCHED --> BLX
-    ACTIVATE --> SCHED
-    TERMINATE --> SCHED
-    CHAIN --> SCHED
-    
-    SCHED -.-> QUEUE
-    TASKA -.-> GPIO
-    TASKB -.-> GPIO
-    TASKC -.-> GPIO
     
     style APP fill:#3b82f6,color:#fff
     style TASKA fill:#dc2626,color:#fff
@@ -267,25 +250,11 @@ timeline
 ## Building the Project
 
 ### Prerequisites
-- MCUXpresso IDE
+- MCUXpresso extension for VSCode
 - ARM GCC Compiler
 - CMake 3.20+
+- (All installed with the VSCode extension)
 
-### Build Commands
-
-**Using CMake:**
-```bash
-mkdir build
-cd build
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build .
-```
-
-**Using MCUXpresso:**
-1. Open MCUXpresso IDE
-2. Import project: `File` → `Import` → `Existing Projects into Workspace`
-3. Select the project folder
-4. Build: `Project` → `Build All` or `Ctrl+B`
 
 ---
 
