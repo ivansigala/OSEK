@@ -1,0 +1,16 @@
+{
+  "version": "25.3",
+  "toolchainPath": "C:/Users/diego/.mcuxpressotools/arm-gnu-toolchain-14.2.rel1-mingw-w64-x86_64-arm-none-eabi",
+  "linkedProjects": [],
+  "trustZoneType": "none",
+  "multicoreType": "none",
+  "projectType": "sdk-v2-freestanding",
+  "projectName": "frdmmcxn947_cmsis_button_toggle_led_cm33_core0_zzz",
+  "sdk": {
+    "version": "26.3.0",
+    "path": "c:\\PROJECTS\\SOTR\\mcuxsdk",
+    "boardId": "frdmmcxn947",
+    "deviceId": "MCXN947",
+    "coreId": "cm33_core0"
+  }
+}
